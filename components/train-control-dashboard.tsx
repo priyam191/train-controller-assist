@@ -72,10 +72,16 @@ export function TrainControlDashboard() {
   const [selectedTrain, setSelectedTrain] = useState<number | null>(null)
   const [optimizationData, setOptimizationData] = useState<OptimizationResult | null>(null)
   const [isOptimizing, setIsOptimizing] = useState(false)
+  const [conflictMode, setConflictMode] = useState(false)
+  const [activeConflicts, setActiveConflicts] = useState(sampleConflicts)
 
   useEffect(() => {
     fetchOptimizationData()
-  }, [])
+    if (conflictMode) {
+      const interval = setInterval(fetchConflicts, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [conflictMode])
 
   const fetchOptimizationData = async () => {
     try {
@@ -84,6 +90,29 @@ export function TrainControlDashboard() {
       setOptimizationData(data)
     } catch (error) {
       console.error("Failed to fetch optimization data:", error)
+    }
+  }
+
+  const fetchConflicts = async () => {
+    try {
+      const response = await fetch("/api/conflicts")
+      const data = await response.json()
+      setActiveConflicts(data)
+    } catch (error) {
+      console.error("Failed to fetch conflicts:", error)
+    }
+  }
+
+  const resolveConflict = async (conflictId: number, action: string) => {
+    try {
+      await fetch("/api/conflicts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conflictId, action }),
+      })
+      fetchConflicts()
+    } catch (error) {
+      console.error("Failed to resolve conflict:", error)
     }
   }
 
@@ -146,6 +175,14 @@ export function TrainControlDashboard() {
             <Zap className="h-4 w-4" />
             AI Optimization: ON
           </Badge>
+          <Button
+            onClick={() => setConflictMode(!conflictMode)}
+            variant={conflictMode ? "destructive" : "outline"}
+            size="sm"
+          >
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            {conflictMode ? "Exit Conflict Mode" : "Conflict Mode"}
+          </Button>
           <Button onClick={runOptimization} disabled={isOptimizing} variant="outline" size="sm">
             {isOptimizing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
             {isOptimizing ? "Optimizing..." : "Run Optimization"}
@@ -153,11 +190,32 @@ export function TrainControlDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      {conflictMode && (
+        <Card className="border-destructive bg-destructive/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-6 w-6 text-destructive" />
+              <div>
+                <h3 className="font-semibold text-destructive">Conflict Resolution Mode Active</h3>
+                <p className="text-sm text-muted-foreground">
+                  System prioritizing conflict detection and resolution. Auto-refreshing every 5 seconds.
+                </p>
+              </div>
+              <div className="ml-auto">
+                <Badge variant="destructive">{activeConflicts.length} Active Conflicts</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Tabs defaultValue={conflictMode ? "conflicts" : "overview"} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="trains">Train Status</TabsTrigger>
-          <TabsTrigger value="conflicts">Conflicts</TabsTrigger>
+          <TabsTrigger value="conflicts" className={conflictMode ? "bg-destructive/20" : ""}>
+            Conflicts {conflictMode && `(${activeConflicts.length})`}
+          </TabsTrigger>
           <TabsTrigger value="simulation">Live Simulation</TabsTrigger>
           <TabsTrigger value="scenarios">What-If</TabsTrigger>
         </TabsList>
@@ -198,9 +256,11 @@ export function TrainControlDashboard() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Throughput</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-muted-foreground" />
+                  Throughput
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">94%</div>
@@ -309,41 +369,111 @@ export function TrainControlDashboard() {
         </TabsContent>
 
         <TabsContent value="conflicts" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Critical Conflicts</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">
+                  {activeConflicts.filter((c) => c.severity === "high").length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Auto-Resolved</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">12</div>
+                <p className="text-xs text-muted-foreground">Last 24 hours</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Avg Resolution Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">2.3 min</div>
+                <p className="text-xs text-green-600">↓ 30s from yesterday</p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Active Conflicts</CardTitle>
-              <CardDescription>System-detected conflicts requiring attention</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Active Conflicts
+                {conflictMode && <Badge variant="outline">Live Updates</Badge>}
+              </CardTitle>
+              <CardDescription>System-detected conflicts requiring immediate attention</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {sampleConflicts.map((conflict) => (
-                  <div key={conflict.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-destructive" />
-                        <span className="font-medium capitalize">{conflict.type.replace("_", " ")}</span>
-                        <Badge variant={getSeverityColor(conflict.severity)}>{conflict.severity}</Badge>
+              <div className="space-y-4">
+                {activeConflicts.map((conflict) => (
+                  <div key={conflict.id} className="p-4 border rounded-lg bg-card">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle
+                          className={`h-5 w-5 ${conflict.severity === "high" ? "text-destructive" : "text-yellow-500"}`}
+                        />
+                        <div>
+                          <span className="font-medium capitalize">{conflict.type.replace("_", " ")}</span>
+                          <Badge variant={getSeverityColor(conflict.severity)} className="ml-2">
+                            {conflict.severity}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4" />
                         {conflict.location}
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">Trains involved: {conflict.trains.join(", ")}</p>
-                    <p className="text-sm mb-3">{conflict.suggestion}</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm font-medium mb-1">Trains Involved</p>
+                        <p className="text-sm text-muted-foreground">{conflict.trains.join(", ")}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-1">Estimated Impact</p>
+                        <p className="text-sm text-muted-foreground">
+                          {conflict.severity === "high" ? "+15-20 min delay" : "+5-10 min delay"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-muted/50 p-3 rounded-lg mb-4">
+                      <p className="text-sm font-medium mb-1">AI Recommendation</p>
+                      <p className="text-sm">{conflict.suggestion}</p>
+                    </div>
+
                     <div className="flex gap-2">
-                      <Button size="sm" variant="secondary">
-                        Resolve
+                      <Button
+                        size="sm"
+                        onClick={() => resolveConflict(conflict.id, "resolve")}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        Apply Resolution
                       </Button>
                       <Button size="sm" variant="outline">
-                        Simulate
+                        Test in What-If
                       </Button>
-                      <Button size="sm" variant="ghost">
+                      <Button size="sm" variant="ghost" onClick={() => resolveConflict(conflict.id, "ignore")}>
                         Ignore
                       </Button>
                     </div>
                   </div>
                 ))}
+
+                {activeConflicts.length === 0 && (
+                  <div className="text-center py-8">
+                    <AlertTriangle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <p className="text-lg font-medium text-green-600">No Active Conflicts</p>
+                    <p className="text-sm text-muted-foreground">All systems operating normally</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
