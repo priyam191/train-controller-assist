@@ -300,7 +300,7 @@ export function TrainControlDashboard() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium capitalize">{suggestion.type.replace("_", " ")}</p>
+                      <p className="font-medium capitalize">{suggestion.type?.replace("_", " ") || "Unknown"}</p>
                       <Badge variant="outline" className="text-xs">
                         {Math.round(suggestion.confidence * 100)}% confidence
                       </Badge>
@@ -419,7 +419,9 @@ export function TrainControlDashboard() {
                           className={`h-5 w-5 ${conflict.severity === "high" ? "text-destructive" : "text-yellow-500"}`}
                         />
                         <div>
-                          <span className="font-medium capitalize">{conflict.type.replace("_", " ")}</span>
+                          <span className="font-medium capitalize">
+                            {conflict.type?.replace("_", " ") || "Unknown"}
+                          </span>
                           <Badge variant={getSeverityColor(conflict.severity)} className="ml-2">
                             {conflict.severity}
                           </Badge>
@@ -434,7 +436,9 @@ export function TrainControlDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <p className="text-sm font-medium mb-1">Trains Involved</p>
-                        <p className="text-sm text-muted-foreground">{conflict.trains.join(", ")}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {conflict.trains?.join(", ") || "No trains specified"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium mb-1">Estimated Impact</p>

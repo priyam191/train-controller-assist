@@ -501,80 +501,186 @@ function ScenarioResultsDisplay({ results }: { results: ScenarioResults }) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="text-center">
-              <div className={`text-2xl font-bold ${getImpactColor(results.impactMetrics.totalDelayChange)}`}>
+            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
+              <div className={`text-3xl font-bold ${getImpactColor(results.impactMetrics.totalDelayChange)}`}>
                 {results.impactMetrics.totalDelayChange > 0 ? "+" : ""}
                 {results.impactMetrics.totalDelayChange}
               </div>
-              <p className="text-sm text-muted-foreground">Total Delay Change (min)</p>
+              <p className="text-sm text-muted-foreground font-medium">Total Delay Change (min)</p>
+              <div className="mt-2">
+                {results.impactMetrics.totalDelayChange > 0 ? (
+                  <Badge variant="destructive" className="text-xs">
+                    Increased
+                  </Badge>
+                ) : results.impactMetrics.totalDelayChange < 0 ? (
+                  <Badge variant="default" className="text-xs bg-green-600">
+                    Improved
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">
+                    No Change
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="text-center">
-              <div className={`text-2xl font-bold ${getImpactColor(results.impactMetrics.conflictsChange)}`}>
+            <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg">
+              <div className={`text-3xl font-bold ${getImpactColor(results.impactMetrics.conflictsChange)}`}>
                 {results.impactMetrics.conflictsChange > 0 ? "+" : ""}
                 {results.impactMetrics.conflictsChange}
               </div>
-              <p className="text-sm text-muted-foreground">Conflicts Change</p>
+              <p className="text-sm text-muted-foreground font-medium">Conflicts Change</p>
+              <div className="mt-2">
+                {results.impactMetrics.conflictsChange > 0 ? (
+                  <Badge variant="destructive" className="text-xs">
+                    More Conflicts
+                  </Badge>
+                ) : results.impactMetrics.conflictsChange < 0 ? (
+                  <Badge variant="default" className="text-xs bg-green-600">
+                    Fewer Conflicts
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">
+                    No Change
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{results.impactMetrics.affectedTrains}</div>
-              <p className="text-sm text-muted-foreground">Affected Trains</p>
+            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
+              <div className="text-3xl font-bold text-primary">{results.impactMetrics.affectedTrains}</div>
+              <p className="text-sm text-muted-foreground font-medium">Affected Trains</p>
+              <div className="mt-2">
+                <Badge variant="outline" className="text-xs">
+                  {Math.round((results.impactMetrics.affectedTrains / sampleTrains.length) * 100)}% of fleet
+                </Badge>
+              </div>
             </div>
 
-            <div className="text-center">
-              <div className={`text-2xl font-bold ${getImpactColor(-results.comparisonWithBaseline.throughputGain)}`}>
+            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
+              <div className={`text-3xl font-bold ${getImpactColor(-results.comparisonWithBaseline.throughputGain)}`}>
                 {results.comparisonWithBaseline.throughputGain > 0 ? "+" : ""}
                 {results.comparisonWithBaseline.throughputGain}%
               </div>
-              <p className="text-sm text-muted-foreground">Throughput Change</p>
+              <p className="text-sm text-muted-foreground font-medium">Throughput Change</p>
+              <div className="mt-2">
+                {results.comparisonWithBaseline.throughputGain > 0 ? (
+                  <Badge variant="default" className="text-xs bg-green-600">
+                    Improved
+                  </Badge>
+                ) : results.comparisonWithBaseline.throughputGain < 0 ? (
+                  <Badge variant="destructive" className="text-xs">
+                    Decreased
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">
+                    No Change
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <h4 className="font-medium mb-3">Detailed Outcomes</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">On-Time Performance</span>
-                  <span className="font-medium text-green-600">
-                    {Math.max(0, 85 + results.comparisonWithBaseline.throughputGain)}%
-                  </span>
+          <div className="border-t pt-6">
+            <h4 className="font-medium mb-4 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Performance Metrics
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">On-Time Performance</span>
+                    <span className="font-bold text-green-600">
+                      {Math.max(0, 85 + results.comparisonWithBaseline.throughputGain)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(0, 85 + results.comparisonWithBaseline.throughputGain)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Platform Utilization</span>
-                  <span className="font-medium">
-                    {Math.min(100, Math.max(0, 78 - results.impactMetrics.conflictsChange * 5))}%
-                  </span>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Platform Utilization</span>
+                    <span className="font-bold">
+                      {Math.min(100, Math.max(0, 78 - results.impactMetrics.conflictsChange * 5))}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, 78 - results.impactMetrics.conflictsChange * 5))}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Track Capacity Usage</span>
-                  <span className="font-medium">
-                    {Math.min(100, Math.max(0, 82 + results.impactMetrics.totalDelayChange))}%
-                  </span>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Track Capacity Usage</span>
+                    <span className="font-bold">
+                      {Math.min(100, Math.max(0, 82 + results.impactMetrics.totalDelayChange))}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-orange-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.max(0, 82 + results.impactMetrics.totalDelayChange))}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Passenger Satisfaction</span>
-                  <span className="font-medium text-blue-600">
-                    {Math.max(0, 4.2 - results.impactMetrics.totalDelayChange * 0.1).toFixed(1)}/5.0
-                  </span>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Passenger Satisfaction</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      {Math.max(0, 4.2 - results.impactMetrics.totalDelayChange * 0.1).toFixed(1)}/5.0
+                    </span>
+                  </div>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <div
+                        key={star}
+                        className={`w-4 h-4 rounded-full ${
+                          star <= Math.max(0, 4.2 - results.impactMetrics.totalDelayChange * 0.1)
+                            ? "bg-blue-600"
+                            : "bg-muted"
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Energy Efficiency</span>
-                  <span className="font-medium text-green-600">
-                    {Math.max(0, 92 + results.comparisonWithBaseline.throughputGain * 0.5).toFixed(1)}%
-                  </span>
+
+                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Energy Efficiency</span>
+                    <span className="text-2xl font-bold text-green-600">
+                      {Math.max(0, 92 + results.comparisonWithBaseline.throughputGain * 0.5).toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Estimated energy savings vs baseline</p>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Cost Impact</span>
-                  <span
-                    className={`font-medium ${results.impactMetrics.totalDelayChange > 0 ? "text-red-500" : "text-green-600"}`}
-                  >
-                    {results.impactMetrics.totalDelayChange > 0 ? "+" : ""}$
-                    {(results.impactMetrics.totalDelayChange * 150).toLocaleString()}
-                  </span>
+
+                <div className="p-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950 dark:to-pink-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Cost Impact</span>
+                    <span
+                      className={`text-2xl font-bold ${
+                        results.impactMetrics.totalDelayChange > 0 ? "text-red-500" : "text-green-600"
+                      }`}
+                    >
+                      {results.impactMetrics.totalDelayChange > 0 ? "+" : ""}$
+                      {(results.impactMetrics.totalDelayChange * 150).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Operational cost change per hour</p>
                 </div>
               </div>
             </div>
@@ -584,119 +690,164 @@ function ScenarioResultsDisplay({ results }: { results: ScenarioResults }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>AI Optimization Recommendations</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            AI Optimization Recommendations
+          </CardTitle>
           <CardDescription>Actionable insights and next steps based on scenario results</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {results.optimizationResult.suggestions.map((suggestion, index) => (
-              <div key={suggestion.id} className="p-4 bg-muted/30 rounded-lg border">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium capitalize">{suggestion.type.replace("_", " ")}</span>
-                    <Badge variant="outline">{Math.round(suggestion.confidence * 100)}% confidence</Badge>
+              <div
+                key={suggestion.id}
+                className="p-6 bg-gradient-to-r from-muted/30 to-muted/10 rounded-lg border-l-4 border-primary"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">{getModificationIcon(suggestion.type)}</div>
+                    <div>
+                      <span className="font-semibold text-lg capitalize">
+                        {suggestion.type?.replace("_", " ") || "Unknown"}
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {Math.round(suggestion.confidence * 100)}% confidence
+                        </Badge>
+                        <Badge variant={suggestion.confidence > 0.8 ? "default" : "secondary"}>
+                          {suggestion.confidence > 0.8 ? "High Priority" : "Consider"}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                  <Badge variant={suggestion.confidence > 0.8 ? "default" : "secondary"}>
-                    {suggestion.confidence > 0.8 ? "High Priority" : "Consider"}
-                  </Badge>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary">#{index + 1}</div>
+                    <div className="text-xs text-muted-foreground">Recommendation</div>
+                  </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground mb-3">{suggestion.description}</p>
+                <p className="text-muted-foreground mb-4 leading-relaxed">{suggestion.description}</p>
 
-                <div className="grid grid-cols-3 gap-4 mb-3 text-xs">
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className={`font-medium ${getImpactColor(suggestion.impact.delayChange)}`}>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-3 bg-background rounded-lg border">
+                    <div className={`text-xl font-bold ${getImpactColor(suggestion.impact.delayChange)}`}>
                       {suggestion.impact.delayChange > 0 ? "+" : ""}
                       {suggestion.impact.delayChange}min
                     </div>
-                    <div className="text-muted-foreground">Delay Impact</div>
+                    <div className="text-xs text-muted-foreground mt-1">Delay Impact</div>
                   </div>
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className="font-medium text-green-600">-{suggestion.impact.conflictsResolved}</div>
-                    <div className="text-muted-foreground">Conflicts Resolved</div>
+                  <div className="text-center p-3 bg-background rounded-lg border">
+                    <div className="text-xl font-bold text-green-600">-{suggestion.impact.conflictsResolved}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Conflicts Resolved</div>
                   </div>
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className="font-medium text-blue-600">+{suggestion.impact.throughputGain}%</div>
-                    <div className="text-muted-foreground">Throughput Gain</div>
+                  <div className="text-center p-3 bg-background rounded-lg border">
+                    <div className="text-xl font-bold text-blue-600">+{suggestion.impact.throughputGain}%</div>
+                    <div className="text-xs text-muted-foreground mt-1">Throughput Gain</div>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button size="sm" variant="default">
+                <div className="flex gap-2 flex-wrap">
+                  <Button size="sm" variant="default" className="flex-1 min-w-[120px]">
+                    <Play className="h-3 w-3 mr-2" />
                     Implement Now
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="flex-1 min-w-[120px] bg-transparent">
+                    <Clock className="h-3 w-3 mr-2" />
                     Schedule for Later
                   </Button>
-                  <Button size="sm" variant="ghost">
+                  <Button size="sm" variant="ghost" className="flex-1 min-w-[120px]">
+                    <Plus className="h-3 w-3 mr-2" />
                     Create Follow-up Scenario
                   </Button>
                 </div>
               </div>
             ))}
 
-            <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-              <h4 className="font-medium text-primary mb-2">Summary Recommendation</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                {results.comparisonWithBaseline.throughputGain > 0
-                  ? `This scenario shows positive outcomes with ${results.comparisonWithBaseline.throughputGain}% throughput improvement. Consider implementing the suggested changes.`
-                  : `This scenario reveals potential issues. Review the modifications and consider alternative approaches.`}
-              </p>
-              <div className="flex gap-2">
-                <Button size="sm" variant="default">
-                  Export Report
-                </Button>
-                <Button size="sm" variant="outline">
-                  Share with Team
-                </Button>
+            <div className="mt-8 p-6 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 rounded-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                </div>
+                <h4 className="text-lg font-semibold text-primary">Executive Summary</h4>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">
+                    {results.comparisonWithBaseline.throughputGain > 0
+                      ? `This scenario demonstrates significant operational improvements with a ${results.comparisonWithBaseline.throughputGain}% throughput enhancement. The proposed changes align with efficiency objectives and should be prioritized for implementation.`
+                      : `This scenario reveals operational challenges that require attention. The analysis suggests reviewing alternative approaches and considering the recommended modifications to optimize performance.`}
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button size="sm" variant="default">
+                      <BarChart3 className="h-3 w-3 mr-2" />
+                      Export Detailed Report
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Train className="h-3 w-3 mr-2" />
+                      Share with Operations Team
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
+                    <span className="text-sm font-medium">Overall Impact Score</span>
+                    <div className="flex items-center gap-2">
+                      <div className="text-lg font-bold text-primary">
+                        {Math.max(1, Math.min(10, 7 + results.comparisonWithBaseline.throughputGain * 0.5)).toFixed(1)}
+                        /10
+                      </div>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <div
+                            key={star}
+                            className={`w-3 h-3 rounded-full ${
+                              star <=
+                              Math.max(1, Math.min(10, 7 + results.comparisonWithBaseline.throughputGain * 0.5)) / 2
+                                ? "bg-primary"
+                                : "bg-muted"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
+                    <span className="text-sm font-medium">Implementation Complexity</span>
+                    <Badge variant={results.optimizationResult.suggestions.length > 3 ? "destructive" : "default"}>
+                      {results.optimizationResult.suggestions.length > 3 ? "High" : "Medium"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
+                    <span className="text-sm font-medium">Risk Level</span>
+                    <Badge variant={results.impactMetrics.conflictsChange > 0 ? "destructive" : "secondary"}>
+                      {results.impactMetrics.conflictsChange > 0 ? "Elevated" : "Low"}
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Train-by-Train Impact</CardTitle>
-          <CardDescription>Individual train performance under this scenario</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {sampleTrains.map((train) => {
-              const impactLevel = Math.random() > 0.5 ? "positive" : "negative"
-              const delayChange =
-                impactLevel === "positive" ? -Math.floor(Math.random() * 5) : Math.floor(Math.random() * 10)
-
-              return (
-                <div key={train.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-3 h-3 rounded-full ${impactLevel === "positive" ? "bg-green-500" : "bg-red-500"}`}
-                    />
-                    <div>
-                      <p className="font-medium">{train.trainNumber}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {train.trainType} • Priority {train.priority}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${getImpactColor(delayChange)}`}>
-                      {delayChange > 0 ? "+" : ""}
-                      {delayChange} min
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {impactLevel === "positive" ? "Improved" : "Delayed"}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
+}
+
+function getModificationIcon(type: string) {
+  switch (type) {
+    case "delay_train":
+      return <Clock className="h-4 w-4" />
+    case "block_track":
+      return <AlertTriangle className="h-4 w-4" />
+    case "change_priority":
+      return <TrendingUp className="h-4 w-4" />
+    case "add_train":
+      return <Plus className="h-4 w-4" />
+    case "cancel_train":
+      return <Trash2 className="h-4 w-4" />
+    default:
+      return <Settings className="h-4 w-4" />
+  }
 }
 
 function getImpactColor(value: number): string {
