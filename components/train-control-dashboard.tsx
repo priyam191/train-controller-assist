@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Train, Clock, MapPin, Activity, Zap, RefreshCw, AlertTriangle } from "lucide-react"
+import { Train, Clock, MapPin, Activity, Zap, RefreshCw, AlertTriangle, User, LogOut } from "lucide-react"
 import type { OptimizationResult } from "@/lib/types"
 import { TrainSimulationMap } from "./train-simulation-map"
 import { WhatIfScenarios } from "./what-if-scenarios"
+import { LiveTrainMap } from "./live-train-map"
+import { useAuth } from "./auth-guard"
 
 const sampleTrains = [
   {
@@ -74,6 +76,8 @@ export function TrainControlDashboard() {
   const [isOptimizing, setIsOptimizing] = useState(false)
   const [conflictMode, setConflictMode] = useState(false)
   const [activeConflicts, setActiveConflicts] = useState(sampleConflicts)
+
+  const { user, logout } = useAuth()
 
   useEffect(() => {
     fetchOptimizationData()
@@ -167,6 +171,19 @@ export function TrainControlDashboard() {
           <p className="text-muted-foreground">Real-time optimization and conflict resolution</p>
         </div>
         <div className="flex items-center gap-4">
+          {user && (
+            <div className="flex items-center gap-3 px-3 py-2 bg-card border rounded-lg">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <div className="text-sm">
+                <div className="font-medium">{user.username}</div>
+                <div className="text-xs text-muted-foreground">{user.role}</div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={logout} className="h-8 w-8 p-0 ml-2">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
           <Badge variant="outline" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             System Active
@@ -210,13 +227,14 @@ export function TrainControlDashboard() {
       )}
 
       <Tabs defaultValue={conflictMode ? "conflicts" : "overview"} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="trains">Train Status</TabsTrigger>
           <TabsTrigger value="conflicts" className={conflictMode ? "bg-destructive/20" : ""}>
             Conflicts {conflictMode && `(${activeConflicts.length})`}
           </TabsTrigger>
-          <TabsTrigger value="simulation">Live Simulation</TabsTrigger>
+          <TabsTrigger value="livemap">Live Map</TabsTrigger>
+          <TabsTrigger value="simulation">Simulation</TabsTrigger>
           <TabsTrigger value="scenarios">What-If</TabsTrigger>
         </TabsList>
 
@@ -241,17 +259,6 @@ export function TrainControlDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">2</div>
                 <p className="text-xs text-muted-foreground">1 high priority, 1 medium</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Delay</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">3.8 min</div>
-                <p className="text-xs text-green-600">↓ 2.1 min from yesterday</p>
               </CardContent>
             </Card>
 
@@ -481,6 +488,10 @@ export function TrainControlDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="livemap" className="space-y-4">
+          <LiveTrainMap />
         </TabsContent>
 
         <TabsContent value="simulation" className="space-y-4">

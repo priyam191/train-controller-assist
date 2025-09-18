@@ -122,5 +122,16 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)),
+      url("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/railway.jpg-DwLhbaUnu03ll5aME1GRB17LtfsEJk.jpeg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  body:not(.dark) {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+      url("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/railway.jpg-DwLhbaUnu03ll5aME1GRB17LtfsEJk.jpeg");
   }
 }
